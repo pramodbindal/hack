@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build-matrix:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     steps:
     - name: Checkout the repository
       uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
       projects: ${{ steps.set-matrix.outputs.projects }}
   update-project:
     needs: build-matrix
-    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -60,9 +60,13 @@ jobs:
         go-version: 1.22.x
     - name: Generate configurations
       run: |
+        
         go run ./cmd/konflux/ -target project -config config/konflux/${{matrix.project}}.yaml
         pushd project
         git status
+        ls -l
+        
+
         popd
     - name: Commit new changes
       run: |
