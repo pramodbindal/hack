@@ -66,11 +66,11 @@ jobs:
         git status
         ls -la
         pushd ./.konflux/rpms
-        ls -la
-        sudo apt-get -y install podman
-        BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:latest
-        podman run $BASE_IMAGE cat /etc/yum.repos.d/ubi.repo > ./ubi.repo
-        
+          ls -la
+          sudo apt-get -y install podman
+          BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:latest
+          podman run $BASE_IMAGE cat /etc/yum.repos.d/ubi.repo > ./ubi-new.repo
+        popd
         
         popd
     - name: Commit new changes
