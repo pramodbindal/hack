@@ -16,21 +16,21 @@ concurrency:
 jobs:
   build-matrix:
     runs-on: ubuntu-latest
-#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+    #    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
-      with:
-        go-version: 1.22.x
-    - id: set-matrix
-      run: |
-        echo "projects=$(go run ./cmd/matrix config/konflux/*)" >> $GITHUB_OUTPUT
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+      - id: set-matrix
+        run: |
+          echo "projects=$(go run ./cmd/matrix config/konflux/*)" >> $GITHUB_OUTPUT
     outputs:
       projects: ${{ steps.set-matrix.outputs.projects }}
   update-project:
     needs: build-matrix
-#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+    #    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -40,71 +40,76 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v4
-    - name: Clone ${{matrix.project}}
-      uses: actions/checkout@v4
-      with:
-        repository: openshift-pipelines/${{matrix.project}}
-        path: project
-    - name: Synchronize labels
-      run: |
-        pushd project
-        gh label clone openshift-pipelines/hack
-        popd
-      env:
-        GH_TOKEN: ${{ secrets.OPENSHIFT_PIPELINES_ROBOT }}
-        GITHUB_TOKEN: ${{ secrets.OPENSHIFT_PIPELINES_ROBOT }} 
-    - uses: actions/setup-go@v5
-      with:
-        go-version: 1.22.x
-    - name: Generate configurations
-      run: |
-        
-        go run ./cmd/konflux/ -target project -config config/konflux/${{matrix.project}}.yaml
-        pushd project/.konflux/rpms
-        git status
-        ls -la
-        sudo apt-get -y install podman
-        BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:latest
-        podman run $BASE_IMAGE cat /etc/yum.repos.d/ubi.repo > ./ubi-new.repo
-      
-        podman run \
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Clone ${{matrix.project}}
+        uses: actions/checkout@v4
+        with:
+          repository: openshift-pipelines/${{matrix.project}}
+          path: project
+      - name: Synchronize labels
+        run: |
+          pushd project
+          gh label clone openshift-pipelines/hack
+          popd
+        env:
+          GH_TOKEN: ${{ secrets.OPENSHIFT_PIPELINES_ROBOT }}
+          GITHUB_TOKEN: ${{ secrets.OPENSHIFT_PIPELINES_ROBOT }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+      - name: Generate configurations
+        run: |
+          
+          go run ./cmd/konflux/ -target project -config config/konflux/${{matrix.project}}.yaml
+          pushd project
+          git status
+          popd
+      - name: Generate RPMs
+        run: |  
+          pushd project/.konflux/rpms
+          ls -la
+          
+          sudo apt-get -y install podman
+          BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:latest
+          podman run $BASE_IMAGE cat /etc/yum.repos.d/ubi.repo > ./ubi-new.repo
+          
+          podman run \
           -e BASE_IMAGE=$BASE_IMAGE \
           -v ./:/rpms -w /rpms -it  fedora sh -c "
             dnf install -y python3-dnf skopeo pip
             python -m pip install https://github.com/konflux-ci/rpm-lockfile-prototype/archive/refs/tags/v0.13.1.tar.gz
             rpm-lockfile-prototype --image $BASE_IMAGE rpms.in.yaml
           "
-        popd
-    - name: Commit new changes
-      run: |
-        pushd project
-        git config user.name openshift-pipelines-bot
-        git config user.email pipelines-extcomm@redhat.com
-        git checkout -b actions/update/konflux-configuration
-        git add .github .konflux .tekton
-
-        if [[ -z $(git status --porcelain --untracked-files=no) ]]; then
-          echo "No change, exiting"
-          exit 0
-        fi
-
-        git commit -m "[bot] update konflux configuration"
-
-        # unset extraheader...
-        git config -l | grep 'http\..*\.extraheader' | cut -d= -f1 | xargs -L1 git config --unset-all
-
-        gh auth status
-        gh auth setup-git
-
-        git push -f origin actions/update/konflux-configuration
-        if [ "$(gh pr list --base main --head actions/update/konflux-configuration --json url --jq 'length')" = "0" ]; then
-          echo "creating PR..."
-          gh pr create -B main -H actions/update/konflux-configuration --label=hack --label=automated --fill
-        else
-          echo "a PR already exists, skipping..."
-        fi
-      env:
-        GH_TOKEN: ${{ secrets.OPENSHIFT_PIPELINES_ROBOT }}
-        GITHUB_TOKEN: ${{ secrets.OPENSHIFT_PIPELINES_ROBOT }}
+          popd
+      - name: Commit new changes
+        run: |
+          pushd project
+          git config user.name openshift-pipelines-bot
+          git config user.email pipelines-extcomm@redhat.com
+          git checkout -b actions/update/konflux-configuration
+          git add .github .konflux .tekton
+          
+          if [[ -z $(git status --porcelain --untracked-files=no) ]]; then
+            echo "No change, exiting"
+            exit 0
+          fi
+          
+          git commit -m "[bot] update konflux configuration"
+          
+          # unset extraheader...
+          git config -l | grep 'http\..*\.extraheader' | cut -d= -f1 | xargs -L1 git config --unset-all
+          
+          gh auth status
+          gh auth setup-git
+          
+          git push -f origin actions/update/konflux-configuration
+          if [ "$(gh pr list --base main --head actions/update/konflux-configuration --json url --jq 'length')" = "0" ]; then
+            echo "creating PR..."
+            gh pr create -B main -H actions/update/konflux-configuration --label=hack --label=automated --fill
+          else
+            echo "a PR already exists, skipping..."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.OPENSHIFT_PIPELINES_ROBOT }}
+          GITHUB_TOKEN: ${{ secrets.OPENSHIFT_PIPELINES_ROBOT }}
