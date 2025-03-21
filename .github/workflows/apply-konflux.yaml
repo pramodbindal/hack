@@ -2,8 +2,8 @@
 name: Apply konflux configurations
 
 on:
-  # schedule:
-  #   - cron: "0 4 * * *" # Daily at 06:00.
+  schedule:
+     - cron: "0 4 * * *" # Daily at 04:00.
   workflow_dispatch: # Manual workflow trigger
 
 concurrency:
@@ -11,42 +11,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-matrix:
-    runs-on: ubuntu-latest
-    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
-    steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
-      with:
-        go-version: 1.22.x
-    - id: set-matrix
-      run: |
-        echo "projects=$(go run ./cmd/matrix config/konflux/*)" >> $GITHUB_OUTPUT
-    outputs:
-      projects: ${{ steps.set-matrix.outputs.projects }}
   apply-project:
-    needs: build-matrix
     if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        project: ${{ fromJSON(needs.build-matrix.outputs.projects) }}
     permissions:
       contents: write
       pull-requests: write
     steps:
     - name: Checkout the repository
       uses: actions/checkout@v4
-    - name: Clone ${{matrix.project}}
-      uses: actions/checkout@v4
-      with:
-        repository: openshift-pipelines/${{matrix.project}}
-        path: project
-    - uses: actions/setup-go@v5
-      with:
-        go-version: 1.22.x
     - name: Apply configurations
       run: |
         kubectl config set-credentials konflux-sa --token "$KONFLUX_TOKEN"
@@ -54,6 +27,7 @@ jobs:
         kubectl config set-context konflux-sa@konflux --user=konflux-sa --namespace=tekton-ecosystem-tenant --cluster=konflux
         kubectl config use-context konflux-sa@konflux
         kubectl get pr
-        go run ./cmd/konflux-apply/ -config config/konflux/${{matrix.project}}.yaml
+        kubectl apply -Rf .konflux
+        #go run ./cmd/konflux-apply/ -config config/konflux/${{matrix.project}}.yaml
       env:
         KONFLUX_TOKEN: ${{ secrets.KONFLUX_SA_TOKEN }}
