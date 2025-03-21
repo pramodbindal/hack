@@ -13,7 +13,7 @@ concurrency:
 jobs:
   build-matrix:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     steps:
     - name: Checkout the repository
       uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
       projects: ${{ steps.set-matrix.outputs.projects }}
   apply-project:
     needs: build-matrix
-    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
