@@ -261,9 +261,9 @@ func generateKonfluxApplication(application k.Application) error {
 		if err := generateFileFromTemplate("role.yaml", application, filepath.Join(konfluxDir, "role.yaml")); err != nil {
 			return err
 		}
-		if err := generateFileFromTemplate("secret.yaml", application, filepath.Join(konfluxDir, "secret.yaml")); err != nil {
-			return err
-		}
+		//if err := generateFileFromTemplate("secret.yaml", application, filepath.Join(konfluxDir, "secret.yaml")); err != nil {
+		//	return err
+		//}
 		if err := generateFileFromTemplate("service-account.yaml", application, filepath.Join(konfluxDir, "service-account.yaml")); err != nil {
 			return err
 		}
