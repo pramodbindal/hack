@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: release-plan-role-main
+rules:
+- apiGroups:
+  - appstudio.redhat.com
+  resources:
+  - snapshots
+  verbs:
+  - get
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: release-plan-rolebinding-main
+subjects:
+- kind: ServiceAccount
+  name: release-registry-openshift-pipelines-main
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: release-plan-role-main
+  apiGroup: rbac.authorization.k8s.io
