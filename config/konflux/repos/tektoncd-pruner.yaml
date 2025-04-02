@@ -1,0 +1,10 @@
+name: tektoncd-pruner
+components:
+  - name: controller
+    image-prefix: pruner-
+tekton:
+  watched-sources: '"***".pathChanged()'
+branches:
+  - name: main
+    versions:
+      - main
