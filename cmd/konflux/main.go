@@ -257,6 +257,10 @@ func generateKonfluxApplication(application k.Application) error {
 		return err
 	}
 
+	if err := generateFileFromTemplate("release-tests.yaml", application, filepath.Join(konfluxDir, "release-tests.yaml")); err != nil {
+		return err
+	}
+
 	if application.Version.AutoRelease {
 		if err := generateFileFromTemplate("role.yaml", application, filepath.Join(konfluxDir, "role.yaml")); err != nil {
 			return err

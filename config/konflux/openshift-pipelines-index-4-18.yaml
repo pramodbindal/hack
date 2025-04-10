@@ -1,0 +1,9 @@
+name: openshift-pipelines-index-4-18
+versions:
+  main:
+    version: main
+    image-suffix: -rhel9
+    auto-release: true
+resources:
+  - operator-index
+

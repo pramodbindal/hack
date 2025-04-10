@@ -4,7 +4,7 @@ kind: PipelineRun
 metadata:
   annotations:
     pipelinesascode.tekton.dev/cancel-in-progress: "true" # Cancel in-progress pipelines
-    {{- if  (ne .Branch.Name "main") }}
+    {{- if  or (ne .Branch.Name "main")  (ne .Repository.Name "operator") }}
     pipelinesascode.tekton.dev/pipeline: "https://raw.githubusercontent.com/openshift-pipelines/operator/refs/heads/main/.tekton/docker-build-ta.yaml"
     {{- end }}
     build.appstudio.openshift.io/repo: {{.Repository.Url}}?rev={{"{{revision}}"}}

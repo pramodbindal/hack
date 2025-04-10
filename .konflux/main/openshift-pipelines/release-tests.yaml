@@ -2,12 +2,12 @@
 apiVersion: appstudio.redhat.com/v1beta2
 kind: IntegrationTestScenario
 metadata:
-  name: {{.Name}}-{{hyphenize .Version}}-e2e-tektoncd-pipelines
+  name: openshift-pipelines-main-release-tests
 spec:
-  application: {{.Name}}-{{hyphenize .Version}}
+  application: openshift-pipelines-main
   contexts:
     - description: Application testing
-      name: component_{{.Name}}-{{hyphenize .Version}}-bundle
+      name: component_openshift-pipelines-main-index-4-18
   resolverRef:
     params:
       - name: url
