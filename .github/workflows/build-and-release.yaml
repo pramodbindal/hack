@@ -1,0 +1,58 @@
+name: build and release
+on:
+  workflow_dispatch: { }
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref (branch or tag) to checkout from the caller repo"
+        required: false
+        type: string
+        default: ${{ github.ref }}
+      repository:
+        description: "Repository that triggered this call (default: same repo)"
+        required: false
+        type: string
+        default: ${{ github.repository }}
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout the source code
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ^1.24
+
+      - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build and push container images
+        run: ./hack/build.sh
+        env:
+          DOCKER_REPO: "ghcr.io/${{ github.repository }}"
+
+      - name: Create or update tag
+        run: |
+          git tag -f $VERSION
+          git push origin $VERSION --force
+
+      - name: update release notes and executables
+        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
+          files: builds/*
+          make_latest: true
+          draft: false
+          prerelease: false
+

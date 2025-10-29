@@ -6,6 +6,8 @@ components:
   - name: events
   - name: nop
   - name: resolvers
+    tekton:
+      watched-sources: ("dependencies/tini/***".pathChanged())
   - name: sidecarlogresults
   - name: webhook
   - name: workingdirinit
