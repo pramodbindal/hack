@@ -1,0 +1,151 @@
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: release-to-github
+  annotations:
+    tekton.dev/tags: release
+spec:
+  description: >-
+    Tekton release pipeline to release the source code extracted
+    from the image built with Konflux, to GitHub.
+  params:
+    - name: SNAPSHOT
+    - name: RELEASE_VERSION
+    - name: TARGET_REGISTRY
+      default: quay.io/openshift-pipeline
+    - name: BUILD_COMMAND
+      default: "./hack/build.sh"
+    - name: BUILD_DIR
+      default: builds
+    - name: IMAGE
+      default: quay.io/konflux-ci/release-service-utils
+  tasks:
+    - name: publish-images
+      taskSpec:
+        results:
+          - name: component-image
+          - name: commit-sha
+          - name: git-url
+        steps:
+          - name: copy-image
+            image: quay.io/konflux-ci/release-service-utils
+            env:
+              - name: VERSION
+                value: $(params.RELEASE_VERSION)
+              - name: TARGET_REGISTRY
+                value: $(params.TARGET_REGISTRY)
+            script: |
+              #!/usr/bin/env bash
+              set -eo pipefail
+              snapshot=$(params.SNAPSHOT)
+              echo "Released Version : $VERSION"
+              SOURCE_PATTEN="quay.io/.*/(pipeline-)?(.*@sha256:.+)"
+              TARGET_PATTEN="${TARGET_REGISTRY}/\2"
+              file="/tmp/snapshot.json"
+
+              get-resource "snapshot" tekton-ecosystem-tenant/$snapshot > $file
+
+              component_name=$(jq '.metadata.labels."appstudio.openshift.io/component"' $file | tr -d '"')
+
+              jq -c '.spec.components[]' /tmp/snapshot.json | while read -r component ; do
+              name=$(echo $component | jq -r .name)
+              if [[ "$name" = "$component_name"  ]]; then
+                echo "Copying Container Image for : $component_name"
+
+                container_image=$(echo $component | jq -r .containerImage)
+                commit_sha=$(echo $component | jq -r .source.git.revision)
+                git_url=$(echo $component | jq -r .source.git.url)
+
+                new_image=$(echo "$container_image" | sed -E "s|$SOURCE_PATTEN|$TARGET_PATTEN|g")
+                echo "Component Image updated for release : $new_image : $(step.results.component-image.path)"  
+
+                sha=${new_image/*@sha256:/}
+                new_image=${new_image/@sha256:*/}
+                tags=($VERSION sha-$sha)
+                for tag in "${tags[@]}"; do
+                  echo "copying the image from $container_image to $new_image with tag $tag and preserving digests"
+                  skopeo copy docker://"$container_image" docker://"$new_image:$tag" --all --preserve-digests 
+                done
+                set -x 
+                #Write Results
+                echo -n $new_image > $(results.component-image.path)
+                echo -n $commit_sha > $(results.commit-sha.path)
+                echo -n $git_url > $(results.git-url.path)
+                set +x
+              fi
+              done
+
+    - name: release-to-github
+      runAfter:
+        - publish-images
+      taskSpec:
+        stepTemplate:
+          env:
+            - name: VERSION
+              value: $(params.RELEASE_VERSION)
+            - name: COMMIT_SHA
+              value: $(tasks.publish-images.results.commit-sha)
+            - name: GIT_URL
+              value: $(tasks.publish-images.results.git-url)
+            - name: IMG
+              value: $(tasks.publish-images.results.component-image)
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: my-github-secret
+                  key: token
+        steps:
+          - name: clone-repo
+            ref:
+              resolver: cluster
+              params:
+                - name: name
+                  value: git-clone
+                - name: namespace
+                  value: openshift-pipelines
+                - name: kind
+                  value: stepaction
+            params:
+              - name: OUTPUT_PATH
+                value: /workspace
+              - name: URL
+                value: $(tasks.publish-images.results.git-url)
+          - name: create-github-release
+            workingDir: /workspace
+            image: quay.io/konflux-ci/release-service-utils
+            script: |
+              # Release
+              TAG=v$VERSION
+              env
+              git config --global --add safe.directory /workspace
+              if gh release view "$TAG" >/dev/null 2>&1; then
+                echo "✅ Release $TAG already exists. Cleaning up"
+                gh release delete "$TAG" --cleanup-tag --yes
+              fi
+              set -x
+              echo "🚀 Creating release for $TAG..."
+              gh release create "$TAG" \
+              --target "$COMMIT_SHA" \
+              --title "$TAG" \
+              --notes "Auto-created release for $TAG" \
+              --generate-notes
+              echo "Done ✅"
+          - name: generate-artifacts
+            workingDir: /workspace
+            image: quay.io/openshift-pipeline/ci:latest
+            script: |
+              set -x
+              echo $IMG
+              $(params.BUILD_COMMAND)
+
+          - name: upload-assets
+            workingDir: /workspace
+            image: $(params.IMAGE)
+            script: |
+              # Upload assets
+              TAG=v$VERSION
+              UPLOAD_DIR=$(params.BUILD_DIR)
+
+              echo "📦 Uploading assets from $UPLOAD_DIR to $TAG"
+              gh release upload "$TAG" "$UPLOAD_DIR"/* --clobber
