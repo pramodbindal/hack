@@ -2,5 +2,6 @@ name: console-plugin
 upstream: openshift-pipelines/console-plugin
 components:
   - name: console-plugin
+    no-image-prefix: true
     prefetch-input: |-
-      [{"type": "rpm", "path": ".konflux/rpms"}, {"type": "yarn"}]
+      [{"type": "rpm", "path": ".konflux/rpms"}, {"type": "yarn", "path": "upstream"}]

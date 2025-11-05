@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	k "github.com/openshift-pipelines/hack/internal/konflux"
+	k "github.com/openshift-pipelines-konflux/hack/internal/konflux"
 	"gopkg.in/yaml.v2"
 )
 
