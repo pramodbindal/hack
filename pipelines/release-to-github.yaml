@@ -82,7 +82,7 @@ spec:
       taskSpec:
         stepTemplate:
           env:
-            - name: VERSION
+            - name: RELEASE_VERSION
               value: $(params.RELEASE_VERSION)
             - name: COMMIT_SHA
               value: $(tasks.publish-images.results.commit-sha)
@@ -111,12 +111,18 @@ spec:
                 value: /workspace
               - name: URL
                 value: $(tasks.publish-images.results.git-url)
+          - name: generate-artifacts
+            workingDir: /workspace
+            image: quay.io/openshift-pipeline/ci:latest
+            script: |
+              set -x
+              echo $IMG
+              $(params.BUILD_COMMAND)
           - name: create-github-release
             workingDir: /workspace
             image: quay.io/konflux-ci/release-service-utils
             script: |
-              # Release
-              TAG=v$VERSION
+              TAG=v$RELEASE_VERSION
               env
               git config --global --add safe.directory /workspace
               if gh release view "$TAG" >/dev/null 2>&1; then
@@ -131,21 +137,16 @@ spec:
               --notes "Auto-created release for $TAG" \
               --generate-notes
               echo "Done ✅"
-          - name: generate-artifacts
-            workingDir: /workspace
-            image: quay.io/openshift-pipeline/ci:latest
-            script: |
-              set -x
-              echo $IMG
-              $(params.BUILD_COMMAND)
-
           - name: upload-assets
             workingDir: /workspace
             image: $(params.IMAGE)
             script: |
               # Upload assets
-              TAG=v$VERSION
+              TAG=v$RELEASE_VERSION
               UPLOAD_DIR=$(params.BUILD_DIR)
-
               echo "📦 Uploading assets from $UPLOAD_DIR to $TAG"
-              gh release upload "$TAG" "$UPLOAD_DIR"/* --clobber
+              find "$UPLOAD_DIR" -type f | while read f; do
+                echo "Uploading $f"
+                name=${f#"$UPLOAD_DIR"/}
+                gh release upload "$TAG" "$f#$name" --clobber
+              done
