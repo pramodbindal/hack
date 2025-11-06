@@ -136,7 +136,7 @@ func generateKonfluxComponents(application Application, targetDir string) error 
 	log.Printf("Generate %s konflux configuration in %s\n", application.Name, targetDir)
 	for _, c := range application.Components {
 		componentDir := filepath.Join(targetDir, c.Repository.Name)
-		if err := generateFileFromTemplate("component.yaml", c, filepath.Join(componentDir, fmt.Sprintf("component-%s%s.yaml", c.ImagePrefix, c.Name)), application); err != nil {
+		if err := generateFileFromTemplate("component.yaml", c, filepath.Join(componentDir, fmt.Sprintf("component-%s-%s-%s.yaml", c.Repository.Name, c.Name, application.Version.Version)), application); err != nil {
 			return err
 		}
 		if err := generateFileFromTemplate("image.yaml", c, filepath.Join(componentDir, fmt.Sprintf("image-%s%s.yaml", c.ImagePrefix, c.Name)), application); err != nil {

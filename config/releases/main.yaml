@@ -1,5 +1,6 @@
 version: main
 image-suffix: "-rhel9"
+#image-prefix: "pipeline-"
 branches:
   tektoncd-pipeline:
     name: main

@@ -14,15 +14,16 @@ type Application struct {
 }
 
 type Repository struct {
-	Name        string
-	Upstream    string
-	Url         string
-	Branch      Branch
-	Components  []Component
-	Application Application
-	Tekton      Tekton
-	GitHub      GitHub
-	Patches     []Patch
+	Name             string
+	Upstream         string
+	Url              string
+	Branch           Branch
+	Components       []Component
+	Application      Application
+	Tekton           Tekton
+	GitHub           GitHub
+	Patches          []Patch
+	NoPrefixUpstream bool `json:"no-prefix-upstream" yaml:"no-prefix-upstream"`
 }
 type Branch struct {
 	Name           string

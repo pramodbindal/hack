@@ -1,7 +1,7 @@
 name: tekton-kueue
 upstream: konflux-ci/tekton-kueue
+no-prefix-upstream: true
 components:
   - name: kueue
-    image-prefix: tekton-
     prefetch-input: |
       {"type": "gomod", "path": "upstream"}
