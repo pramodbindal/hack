@@ -3,7 +3,7 @@
 apiVersion: appstudio.redhat.com/v1alpha1
 kind: ImageRepository
 metadata:
-  name: console-plugin-console-plugin-rhel9
+  name: console-plugin-rhel9
   annotations:
     image-controller.appstudio.redhat.com/update-component-image: "true"
     image-controller.appstudio.redhat.com/skip-repository-deletion: "true"
@@ -12,5 +12,5 @@ metadata:
     appstudio.redhat.com/application: openshift-pipelines-core-main
 spec:
   image:
-   name: console-plugin-console-plugin-rhel9
+   name: console-plugin-rhel9
    visibility: public
