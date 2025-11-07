@@ -24,5 +24,5 @@ spec:
     params:
       - name: released_version
         value: "main"
-      - name: release_to_github
+      - name: ReleaseToGitHub
         value: "false"
