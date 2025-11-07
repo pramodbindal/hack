@@ -7,10 +7,11 @@ type Config struct {
 }
 
 type Application struct {
-	Name         string
-	Components   []Component
-	Version      *Version
-	Repositories []Repository
+	Name            string
+	Components      []Component
+	Version         *Version
+	Repositories    []Repository
+	ReleaseToGitHub bool `yaml:"release_to_github"`
 }
 
 type Repository struct {
