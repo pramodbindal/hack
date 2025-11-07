@@ -23,5 +23,5 @@ spec:
     params:
       - name: released_version
         value: "{{.Version.Version}}"
-      - name: release_to_github
-        value: "true"
+      - name: ReleaseToGitHub
+        value: "{{.ReleaseToGitHub}}"
