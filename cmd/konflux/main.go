@@ -84,9 +84,11 @@ func readApplications(dir, applicationName string, versionConfig k.VersionConfig
 
 	for _, applicationConfig := range applicationConfigs {
 		application := k.Application{
-			Name:       applicationConfig.Name,
-			Components: []k.Component{},
-			Version:    &versionConfig.Version,
+			Name:            applicationConfig.Name,
+			Components:      []k.Component{},
+			Version:         &versionConfig.Version,
+			Org:             applicationConfig.Org,
+			ReleaseToGitHub: applicationConfig.ReleaseToGitHub,
 		}
 		for _, repoName := range applicationConfig.Repositories {
 			repo, err := readRepository(dir, repoName, &application, versionConfig.Branches[repoName])
@@ -107,7 +109,9 @@ func readApplications(dir, applicationName string, versionConfig k.VersionConfig
 
 func updateRepository(repo *k.Repository, a k.Application) error {
 	repo.Application = a
-
+	if a.Org == "" {
+		a.Org = GithubOrg
+	}
 	repository := fmt.Sprintf("https://github.com/%s/%s.git", GithubOrg, repo.Name)
 	repo.Url = repository
 

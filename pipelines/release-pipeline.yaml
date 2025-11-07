@@ -72,11 +72,11 @@ spec:
                 echo "Component Image updated for release : $new_image "
 
                 sha=${new_image/*@sha256:/}
-                new_image=${new_image/@sha256:*/}
+                new_image_without_sha=${new_image/@sha256:*/}
                 tags=($VERSION sha-$sha)
                 for tag in "${tags[@]}"; do
-                  echo "copying the image from $container_image to $new_image with tag $tag and preserving digests"
-                  skopeo copy docker://"$container_image" docker://"$new_image:$tag" --all --preserve-digests
+                  echo "copying the image from $container_image to $new_image_without_sha with tag $tag and preserving digests"
+                  skopeo copy docker://"$container_image" docker://"$new_image_without_sha:$tag" --all --preserve-digests
                 done
                 set -x
                 #Write Results
@@ -100,6 +100,8 @@ spec:
           env:
             - name: RELEASE_VERSION
               value: $(params.release_version)
+            - name: VERSION
+              value: $(params.release_version)
             - name: RELEASE_DIR
               value: $(params.release_dir)
             - name: COMMIT_SHA
@@ -108,11 +110,6 @@ spec:
               value: $(tasks.publish-images.results.git-url)
             - name: IMG
               value: $(tasks.publish-images.results.component-image)
-            #            - name: GH_TOKEN
-            #              valueFrom:
-            #                secretKeyRef:
-            #                  name: my-github-secret
-            #                  key: token
             - name: GH_TOKEN
               valueFrom:
                 secretKeyRef:

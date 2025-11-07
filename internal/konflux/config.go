@@ -8,10 +8,11 @@ type Config struct {
 
 type Application struct {
 	Name            string
+	Org             string
 	Components      []Component
 	Version         *Version
 	Repositories    []Repository
-	ReleaseToGitHub bool `yaml:"release_to_github"`
+	ReleaseToGitHub bool `yaml:"release-to-github"`
 }
 
 type Repository struct {
@@ -67,8 +68,10 @@ type Version struct {
 }
 
 type ApplicationConfig struct {
-	Repositories []string `json:"repos" yaml:"repos"`
-	Name         string
+	Repositories    []string `json:"repos" yaml:"repos"`
+	Name            string
+	Org             string
+	ReleaseToGitHub bool `yaml:"release-to-github"`
 }
 
 type VersionConfig struct {

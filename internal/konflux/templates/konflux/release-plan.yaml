@@ -19,9 +19,9 @@ spec:
           # value: {{- if or (eq .Version.Version "main") (eq .Version.Version "next")  }}  {{.Version.Version}} {{- else}} release-v{{.Version.Version}}.x {{end}}
           value: main
         - name: pathInRepo
-          value: pipelines/release.yaml
+          value: pipelines/release-pipeline.yaml
     params:
-      - name: released_version
+      - name: release_version
         value: "{{.Version.Version}}"
-      - name: ReleaseToGitHub
+      - name: release_to_github
         value: "{{.ReleaseToGitHub}}"

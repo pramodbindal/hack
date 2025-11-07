@@ -15,14 +15,14 @@ spec:
       resolver: git
       params:
         - name: url
-          value: https://github.com/openshift-pipelines-konflux/hack.git
+          value: https://github.com/pramodbindal/hack.git
         - name: revision
           # value:  main
           value: main
         - name: pathInRepo
-          value: pipelines/release.yaml
+          value: pipelines/release-pipeline.yaml
     params:
-      - name: released_version
-        value: "main"
+      - name: release_version
+        value: "v0.1.0"
       - name: release_to_github
-        value: "false"
+        value: "true"
