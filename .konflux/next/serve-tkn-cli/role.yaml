@@ -1,0 +1,27 @@
+# Generated for Konflux Application serve-tkn-cli by openshift-pipelines/hack. DO NOT EDIT
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: release-plan-role-serve-tkn-cli-next
+rules:
+- apiGroups:
+  - appstudio.redhat.com
+  resources:
+  - snapshots
+  verbs:
+  - get
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: release-plan-rolebinding-serve-tkn-cli-next
+subjects:
+- kind: ServiceAccount
+  name: release-registry-serve-tkn-cli-next
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: release-plan-role-serve-tkn-cli-next
+  apiGroup: rbac.authorization.k8s.io

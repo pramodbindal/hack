@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -18,17 +19,22 @@ const (
 )
 
 func main() {
+	flag.Parse()
+	configFiles := flag.Args()
 	configFile := "config/konflux.yaml"
+	if len(configFiles) == 1 {
+		configFile = configFiles[0]
+	}
 	configDir := filepath.Dir(configFile)
 
 	// Read the main konflux config using the generic readResource function
-	config, err := readConfig(configDir)
+	config, err := readConfig(configDir, filepath.Base(configFile))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for _, version := range config.Versions {
-		versionConfig, err := readResource[k.VersionConfig](configDir, "releases", version)
+		versionConfig, err := readResource[k.ReleaseConfig](configDir, "releases", version)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -56,8 +62,10 @@ func main() {
 // readResource reads any type of resource from YAML files
 func readResource[T any](dir, resourceType, resourceName string) (T, error) {
 	var result T
-
-	filePath := filepath.Join(dir, resourceType, resourceName+".yaml")
+	if !strings.HasSuffix(resourceName, ".yaml") {
+		resourceName += ".yaml"
+	}
+	filePath := filepath.Join(dir, resourceType, resourceName)
 	in, err := os.ReadFile(filePath)
 
 	if err != nil {
@@ -72,7 +80,7 @@ func readResource[T any](dir, resourceType, resourceName string) (T, error) {
 }
 
 // Helper functions using the generic readResource function
-func readApplications(dir, applicationName string, versionConfig k.VersionConfig) ([]k.Application, error) {
+func readApplications(dir, applicationName string, versionConfig k.ReleaseConfig) ([]k.Application, error) {
 
 	log.Printf("Reading application: %s", applicationName)
 	applicationConfigs, err := readResource[[]k.ApplicationConfig](dir, "applications", applicationName)
@@ -86,9 +94,10 @@ func readApplications(dir, applicationName string, versionConfig k.VersionConfig
 		application := k.Application{
 			Name:            applicationConfig.Name,
 			Components:      []k.Component{},
-			Version:         &versionConfig.Version,
+			Release:         &versionConfig.Version,
 			Org:             applicationConfig.Org,
 			ReleaseToGitHub: applicationConfig.ReleaseToGitHub,
+			AutoRelease:     true,
 		}
 		for _, repoName := range applicationConfig.Repositories {
 			repo, err := readRepository(dir, repoName, &application, versionConfig.Branches[repoName])
@@ -112,16 +121,18 @@ func updateRepository(repo *k.Repository, a k.Application) error {
 	if a.Org == "" {
 		a.Org = GithubOrg
 	}
-	repository := fmt.Sprintf("https://github.com/%s/%s.git", GithubOrg, repo.Name)
-	repo.Url = repository
+	if repo.Url == "" {
+		repository := fmt.Sprintf("https://github.com/%s/%s.git", a.Org, repo.Name)
+		repo.Url = repository
+	}
 
 	var branchName, upstreamBranch string
 
-	if a.Version.Version == "main" || a.Version.Version == "next" {
+	if a.Release.Version == "main" || a.Release.Version == "next" {
 		branchName = "main"
 		upstreamBranch = "main"
 	} else {
-		branchName = "release-v" + a.Version.Version + ".x"
+		branchName = "release-v" + a.Release.Version + ".x"
 		upstreamBranch = "main"
 	}
 
@@ -167,7 +178,7 @@ func readRepository(dir, repoName string, app *k.Application, branch k.Branch) (
 // UpdateComponent function can be modified  if we want to override the fields at component level.
 func UpdateComponent(c *k.Component, repo k.Repository, app k.Application) error {
 	log.Printf("Updating component: %s", c.Name)
-	version := *app.Version
+	version := *app.Release
 
 	c.Version = version
 	c.Application = repo.Application
@@ -202,6 +213,6 @@ func UpdateComponent(c *k.Component, repo k.Repository, app k.Application) error
 }
 
 // readConfig reads the main konflux config file
-func readConfig(dir string) (k.Config, error) {
-	return readResource[k.Config](dir, "", "konflux")
+func readConfig(dir, configFile string) (k.Config, error) {
+	return readResource[k.Config](dir, "", configFile)
 }

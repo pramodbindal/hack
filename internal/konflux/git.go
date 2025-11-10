@@ -16,7 +16,7 @@ const baseBranchPrefix = "hack/"
 func cloneAndCheckout(ctx context.Context, repo Repository, targetDir string) (string, error) {
 	branch := repo.Branch.Name
 	branchPrefix := baseBranchPrefix + repo.Application.Name + "/"
-	dir := filepath.Join(targetDir, repo.Application.Version.Version, repo.Name)
+	dir := filepath.Join(targetDir, repo.Application.Release.Version, repo.Name)
 	exists, err := exists(filepath.Join(dir, ".git"))
 
 	if err != nil {

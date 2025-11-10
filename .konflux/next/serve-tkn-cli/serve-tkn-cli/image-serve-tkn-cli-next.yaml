@@ -1,0 +1,16 @@
+# Generated for Konflux Application serve-tkn-cli by openshift-pipelines/hack. DO NOT EDIT
+---
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: ImageRepository
+metadata:
+  name: serve-tkn-cli-rhel9
+  annotations:
+    image-controller.appstudio.redhat.com/update-component-image: "true"
+    #image-controller.appstudio.redhat.com/skip-repository-deletion: "true"
+  labels:
+    appstudio.redhat.com/component: serve-tkn-cli-serve-tkn-cli-next
+    appstudio.redhat.com/application: serve-tkn-cli-next
+spec:
+  image:
+   name: serve-tkn-cli-rhel9
+   visibility: public

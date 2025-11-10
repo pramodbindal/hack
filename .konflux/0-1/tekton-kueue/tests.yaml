@@ -1,16 +1,17 @@
+# Generated for Konflux Application tekton-kueue by openshift-pipelines/hack. DO NOT EDIT
 ---
 apiVersion: appstudio.redhat.com/v1beta2
 kind: IntegrationTestScenario
 metadata:
-  name: {{hyphenize .Name}}-{{hyphenize .Release.Version}}-enterprise-contract
+  name: tekton-kueue-0-1-enterprise-contract
 spec:
-  application: {{hyphenize .Name}}-{{hyphenize .Release.Version}}
+  application: tekton-kueue-0-1
   contexts:
     - description: execute the integration test for a Snapshot of the `component` type
       name: component
   params:
     - name: POLICY_CONFIGURATION
-      value: {{- if  not (contains .Name "index") }} tekton-ecosystem-tenant/tekton-ecosystem-tenant-containers {{- else}} tekton-ecosystem-tenant/tekton-ecosystem-tenant-indexes {{- end}}
+      value: tekton-ecosystem-tenant/tekton-ecosystem-tenant-containers
     - name: TIMEOUT
       value: "15m0s"
     - name: SINGLE_COMPONENT

@@ -1,18 +1,21 @@
+# Generated for Konflux Application serve-tkn-cli by openshift-pipelines/hack. DO NOT EDIT
 ---
 apiVersion: appstudio.redhat.com/v1beta2
 kind: IntegrationTestScenario
 metadata:
-  name: {{.Name}}-{{hyphenize .Version}}-enterprise-contract-push
+  name: serve-tkn-cli-next-enterprise-contract
 spec:
-  application: {{.Name}}-{{hyphenize .Version}}
+  application: serve-tkn-cli-next
   contexts:
-    - description: Application testing
-      name: push
+    - description: execute the integration test for a Snapshot of the `component` type
+      name: component
   params:
     - name: POLICY_CONFIGURATION
       value: tekton-ecosystem-tenant/tekton-ecosystem-tenant-containers
     - name: TIMEOUT
       value: "15m0s"
+    - name: SINGLE_COMPONENT
+      value: "true"
   resolverRef:
     params:
       - name: url

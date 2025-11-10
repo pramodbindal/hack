@@ -1,11 +1,12 @@
+# Generated for Konflux Application openshift-pipelines-cli by openshift-pipelines/hack. DO NOT EDIT
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: release-plan-rolebinding-{{hyphenize .Name}}-{{hyphenize .Release.Version }}
+  name: release-plan-rolebinding-openshift-pipelines-cli-next
 subjects:
   - kind: ServiceAccount
-    name: release-registry-{{hyphenize .Name}}-{{hyphenize .Release.Version}}
+    name: release-registry-openshift-pipelines-cli-next
     apiGroup: ""
 roleRef:
   kind: Role

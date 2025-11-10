@@ -2,6 +2,6 @@
 apiVersion: appstudio.redhat.com/v1alpha1
 kind: Application
 metadata:
-  name: {{hyphenize (printf "%s-%s" .Name .Version.Version)}}
+  name: {{hyphenize (printf "%s-%s" .Name .Release.Version)}}
 spec:
-  displayName: {{hyphenize (printf "%s-%s" .Name .Version.Version)}}
+  displayName: {{hyphenize (printf "%s-%s" .Name .Release.Version)}}

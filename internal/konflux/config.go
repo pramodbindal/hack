@@ -10,9 +10,10 @@ type Application struct {
 	Name            string
 	Org             string
 	Components      []Component
-	Version         *Version
+	Release         *Release
 	Repositories    []Repository
 	ReleaseToGitHub bool `yaml:"release-to-github"`
+	AutoRelease     bool
 }
 
 type Repository struct {
@@ -40,7 +41,7 @@ type Component struct {
 	ImagePrefix   string `json:"image-prefix" yaml:"image-prefix"`
 	ImageSuffix   string `json:"image-suffix" yaml:"image-suffix"`
 	PrefetchInput string `json:"prefetch-input" yaml:"prefetch-input"`
-	Version       Version
+	Version       Release
 	Repository    Repository
 	Application   Application
 	Tekton        Tekton
@@ -61,10 +62,11 @@ type Patch struct {
 	Name   string
 	Script string
 }
-type Version struct {
-	Version     string
-	ImagePrefix string `json:"image-prefix" yaml:"image-prefix"`
-	ImageSuffix string `json:"image-suffix" yaml:"image-suffix"`
+type Release struct {
+	Version      string
+	PatchVersion string `json:"patch-version" yaml:"patch-version"`
+	ImagePrefix  string `json:"image-prefix" yaml:"image-prefix"`
+	ImageSuffix  string `json:"image-suffix" yaml:"image-suffix"`
 }
 
 type ApplicationConfig struct {
@@ -74,9 +76,9 @@ type ApplicationConfig struct {
 	ReleaseToGitHub bool `yaml:"release-to-github"`
 }
 
-type VersionConfig struct {
+type ReleaseConfig struct {
 	Branches map[string]Branch `json:"branches" yaml:"branches"`
-	Version  Version           `json:"version" yaml:",inline"`
+	Version  Release           `json:"version" yaml:",inline"`
 }
 
 const (

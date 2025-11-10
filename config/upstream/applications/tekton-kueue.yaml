@@ -1,0 +1,5 @@
+- name: tekton-kueue
+  org: konflux-ci
+  release-to-github: true
+  repos:
+    - tekton-kueue

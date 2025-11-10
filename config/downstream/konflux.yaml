@@ -3,4 +3,5 @@ applications:
   - index
 
 versions:
-  - main
+  - "next"
+  - "1.22"

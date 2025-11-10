@@ -1,0 +1,18 @@
+# Generated for Konflux Application openshift-pipelines-cli by openshift-pipelines/hack. DO NOT EDIT
+---
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    build.appstudio.openshift.io/pipeline: '{"name":"docker-build-multi-platform-oci-ta","bundle":"latest"}'
+  name: opc-opc-next
+spec:
+  componentName: opc
+  application: openshift-pipelines-cli-next
+  build-nudges-ref:
+  - tektoncd-operator-next-bundle
+  source:
+    git:
+      url: https://github.com/openshift-pipelines-konflux/opc.git
+      dockerfileUrl: .konflux/dockerfiles/opc.Dockerfile
+      revision: main
