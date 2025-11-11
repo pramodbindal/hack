@@ -95,7 +95,7 @@ func commitAndPullRequest(ctx context.Context, repo Repository, dir string) erro
 	}
 	prNumber := strings.TrimSpace(string(out))
 	if prNumber == "" {
-		fmt.Printf("No PR found for %s, Creating ", head)
+		log.Printf("No PR found for %s, Creating ", head)
 		if out, err := run(ctx, dir, "gh", "pr", "create",
 			"--base", base,
 			"--head", head,
